@@ -110,7 +110,7 @@ func main() {
 	app := gofr.New()
 
 	// Define a handler for the root endpoint
-	app.GET("/", func(context *gofr.Context) (interface{}, error) {
+	app.GET("/sassy", func(context *gofr.Context) (interface{}, error) {
 		weather, err := getWeather()
 		if err != nil {
 			context.Error(http.StatusInternalServerError, err.Error())
@@ -124,6 +124,16 @@ func main() {
 		}
 
 		return response, nil
+	})
+
+	app.GET("/", func(context *gofr.Context) (interface{}, error) {
+		weather, err := getWeather()
+		if err != nil {
+			context.Error(http.StatusInternalServerError, err.Error())
+			return nil, err
+		}
+
+		return weather, nil
 	})
 
 	// Start the application
