@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -20,8 +21,14 @@ type GroqResponse struct {
 
 // getWeather fetches the current weather data from the Open-Meteo API.
 func getWeather() (string, error) {
+	latitude := 9.9581
+	longitude := 76.3634
 	client := resty.New()
-	response, err := client.R().Get("https://api.open-meteo.com/v1/forecast?latitude=9.9581&longitude=76.3634&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation&timezone=auto&forecast_days=3")
+
+	// Construct the request URL for the Open-Meteo API.
+	requestURL := "https://api.open-meteo.com/v1/forecast?latitude=" + fmt.Sprintf("%f", latitude) + "&longitude=" + fmt.Sprintf("%f", longitude) + "&current_weather=true"
+	response, err := client.R().Get(requestURL)
+
 	if err != nil {
 		return "", err
 	}
@@ -30,15 +37,10 @@ func getWeather() (string, error) {
 }
 
 // getSassyResponse sends the weather data to the Groq API and returns a sassy weather recommendation.
-func getSassyResponse(weather string) (GroqResponse, error) {
+func getGPTResponse(weather string, prompt string) (GroqResponse, error) {
 	client := resty.New()
 	apiKey := os.Getenv("GROQ_API_KEY")
 
-	// Read the prompt from the prompt.txt file
-	prompt, err := os.ReadFile("prompt.txt")
-	if err != nil {
-		return GroqResponse{}, err
-	}
 	//fmt.Println(string(prompt))
 
 	current_time := time.Now().Local()
@@ -117,7 +119,16 @@ func main() {
 			return nil, err
 		}
 
-		response, err := getSassyResponse(weather)
+		//read the prompt from the file
+
+		prompt, err := os.ReadFile("prompts/sassy.txt")
+		if err != nil {
+			context.Error(http.StatusInternalServerError, err.Error())
+			return nil, err
+		}
+
+		response, err := getGPTResponse(weather, string(prompt))
+
 		if err != nil {
 			context.Error(http.StatusInternalServerError, err.Error())
 			return nil, err
