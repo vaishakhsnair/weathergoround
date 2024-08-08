@@ -36,7 +36,7 @@ func getWeather() (string, error) {
 	return string(response.Body()), nil
 }
 
-// getSassyResponse sends the weather data to the Groq API and returns a sassy weather recommendation.
+// sends the weather data to the Groq API and returns a sassy weather recommendation.
 func getGPTResponse(weather string, prompt string) (GroqResponse, error) {
 	client := resty.New()
 	apiKey := os.Getenv("GROQ_API_KEY")
